@@ -44,8 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Library1.fs" />
-    <None Include="Simple_Sitelet.fsx" />
+    <None Include="DragAndDrop.fsx" />
     <None Include="index.html" />
   </ItemGroup>
   <PropertyGroup>
