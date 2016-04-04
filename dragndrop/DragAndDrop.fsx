@@ -148,13 +148,68 @@ module Sortable =
 
 [<JavaScript>]
 module Client =
+    open Sortable
+    
+    let panel title body =
+        divAttr [ attr.``class`` "panel panel-default" ]
+                [ divAttr [ attr.``class`` "panel-heading" ] [ text title ]
+                  divAttr [ attr.``class`` "panel-body" ] [ body] ]
+
     let main() =
-        Doc.Empty
+        divAttr [ attr.``class`` "row" ]
+                [ divAttr [ attr.``class`` "col-sm-4" ]
+                          [ panel
+                                "Workspace: droppable from ListA and ListB"
+                                (divAttr [ attr.style "min-height:100px;"
+                                           on.afterRender(fun el -> 
+                                             Sortable.Default
+                                             |> Sortable.SetGroup (Group.Create "workspace" Pull.Allow <| Put.AllowList [ "listA"; "listB" ])
+                                             |> Sortable.Create el) ]
+                                          []) ]
+                  
+                  divAttr [ attr.``class`` "col-sm-4" ]
+                          [ panel
+                                "ListA: draggable and sortable"
+                                (divAttr [ on.afterRender(fun el -> 
+                                             Sortable.Default
+                                             |> Sortable.AllowSort
+                                             |> Sortable.SetGroup (Group.Create "listA" Pull.Allow Put.Disallow)
+                                             |> Sortable.Create el) ]
+                                         [ div [ text "Aa" ]
+                                           div [ text "Bb" ]
+                                           div [ text "Cc" ]
+                                           div [ text "Dd" ]
+                                           div [ text "Ee" ] ]) ]
+                  
+                  divAttr [ attr.``class`` "col-sm-4" ]
+                          [ panel
+                                "ListB: draggable and cloned"
+                                (ulAttr [ on.afterRender(fun el -> 
+                                              Sortable.Default
+                                              |> Sortable.DisallowSort
+                                              |> Sortable.SetGroup (Group.Create "listB" Pull.Clone Put.Disallow)
+                                              |> Sortable.Create el) ]
+                                         [ li [ text "11" ]
+                                           li [ text "22" ]
+                                           li [ text "33" ]
+                                           li [ text "44" ]
+                                           li [ text "55" ] ]) ] ]
+                                    
+       
+
 
 module Server =
+    
+    type Page = { Body: Doc list }
+
+    let template =
+        Content.Template<Page>(__SOURCE_DIRECTORY__ + "/index.html")
+            .With("body", fun x -> x.Body)
+    
     let site =
-        Application.SinglePage (fun _-> 
-            Content.Page [ client <@ Client.main() @> ])
+        Application.SinglePage (fun _ ->
+            Content.WithTemplate template
+                { Body = [ divAttr [ attr.style "padding:15px;" ] [ client <@ Client.main() @> ] ] })
 
 
 do Warp.RunAndWaitForInput Server.site |> ignore
